@@ -1,81 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-	<title>摄像头</title>
-	<style type="text/css">
-		input,video{
-			display: block;
-		}
-	</style>
-</head>
-<body>
-	<input type="button" title="开启摄像头" value="开启摄像头">
-	<video autoplay="autoplay" height="120px"></video>
-	<hr>
-	<input type="button" title="拍照" value="拍照">
-	<canvas id="canvas1" height="120px"></canvas>
-	<hr>
-	<input type="button" title="视频" value="视频">
-	<canvas id="canvas2" height="120px"></canvas>
-	
-</body>
-<script type="text/javascript">
-	var ipu = document.getElementsByTagName('input');
-	var video = document.querySelector('video');
-
-	var canvas1 = document.getElementById('canvas1');
-	var ctx1 = canvas1.getContext('2d');
-
-	var canvas2 = document.getElementById('canvas2');
-	var ctx2 = canvas2.getContext('2d');
-
-	// ......开启摄像头.....
-	ipu[0].onclick = function(){
-		getMedia();
-		
-	}
-
-	// ........拍照.....
-	ipu[1].onclick = function(){
-		getPhoto();
-		
-	}
-
-	// .....视频.....
-	ipu[2].onclick = function(){
-		getVedio();
-		
-	}
-	// navigator对象包含的属性描述了正在使用的浏览器,可以使用这些属性进行平台专用的配置。
-	// 方法提醒用户需要使用音频（0或者1）和（0或者1）视频输入设备，比如相机，屏幕共享，或者麦克风
-	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-	
-	// 返回一个对象，该对象提供用于创建和管理对象URL的静态方法
-	window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
-	
-	// MediaStreamTrack.getSources方法需要一个回调函数，并向该函数中传入本机器所有的（音，视频）多媒体源
-	var exArray = []; //存储设备源ID 
-    // H5同时还提供MediaStreamTrack对象，用以跟踪多媒体的输出源。 
-        MediaStreamTrack.getSources(function (sourceInfos) {
+<!DOCTYPE html>  
+<html xmlns="http://www.w3.org/1999/xhtml">  
+<head>  
+    <title>HTML5 GetUserMedia Demo</title>  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />  
+</head>  
+<body>  
+    <input type="button" title="开启摄像头" value="开启摄像头" onclick="getMedia();" /><br />  
+    <video height="120px" autoplay="autoplay"></video><hr />  
+    <input type="button" title="拍照" value="拍照" onclick="getPhoto();" /><br />  
+    <canvas id="canvas1" height="120px" ></canvas><hr />  
+    <input type="button" title="视频" value="视频" onclick="getVedio();" /><br />  
+    <canvas id="canvas2" height="120px"></canvas>  
+  
+    <script type="text/javascript">  i 
+        var video = document.querySelector('video');  
+        var audio, audioType;  
+  
+        var canvas1 = document.getElementById('canvas1');  
+        var context1 = canvas1.getContext('2d');  
+  
+        var canvas2 = document.getElementById('canvas2');  
+        var context2 = canvas2.getContext('2d');  
+  
+        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;  
+        window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;  
+  
+        var exArray = []; //存储设备源ID  
+        MediaStreamTrack.getSources(function (sourceInfos) {  
             for (var i = 0; i != sourceInfos.length; ++i) {  
                 var sourceInfo = sourceInfos[i];  
                 //这里会遍历audio,video，所以要加以区分  
                 if (sourceInfo.kind === 'video') {  
-                    exArray.push(sourceInfo.id);  //首先获取到的是前置摄像头
+                    exArray.push(sourceInfo.id);  
                 }  
             }  
-        });
-        // exArray[0] 为前置摄像头 
-        // exArray[1]为后置摄像头
-
-
-         function getMedia() {  
+        });  
+        // navigator.getUserMedia ( constraints, successCallback, errorCallback );
+        function getMedia() {  
             if (navigator.getUserMedia) {  
                 navigator.getUserMedia({  
                     'video': {  
-                    	// optional属性来处理多媒体源的选择
                         'optional': [{  
                             'sourceId': exArray[1] //0为前置摄像头，1为后置  
                         }]  
@@ -86,9 +50,8 @@
             else {  
                 alert('Native device media streaming (getUserMedia) not supported in this browser.');  
             }  
-        }
-
-        // 在这里操作stream对象，一般是用createObjectURL把stream生成URL对象输出给video元素的src属性
+        }  
+  
         function successFunc(stream) {  
             //alert('Succeed to get media!');  
             if (video.mozSrcObject !== undefined) {  
@@ -110,12 +73,18 @@
             }  
         }  
         function errorFunc(e) {  
-            alert('Error！'+e);
-            console.log(e);  
-        }
-
-
-        // /获取音频格式  
+            alert('Error！'+e);  
+        }  
+  
+          
+        // 将视频帧绘制到Canvas对象上,Canvas每60ms切换帧，形成肉眼视频效果  
+        function drawVideoAtCanvas(video,context) {  
+            window.setInterval(function () {  
+                context.drawImage(video, 0, 0,90,120);  
+            }, 60);  
+        }  
+  
+        //获取音频格式  
         function getAudioType(element) {  
             if (element.canPlayType) {  
                 if (element.canPlayType('audio/mp4; codecs="mp4a.40.5"') !== '') {  
@@ -125,24 +94,23 @@
                 }  
             }  
             return false;  
-        }
-
-
-        // 将视频帧绘制到Canvas对象上,Canvas每60ms切换帧，形成肉眼视频效果
-        function drawVideoAtCanvas(video,Context){
-        	window.setInterval(function(){
-        		Context.drawImage(video,0,0,90,120)
-        	},60)
-        }
-
-
-        function getPhoto(){
-        	drawVideoAtCanvas(video,ctx1);
-        }
-
-        function getVedio(){
-        	drawVideoAtCanvas(video,ctx2);
-        }
-
-</script>
-</html>
+        }  
+  
+        // vedio播放时触发，绘制vedio帧图像到canvas  
+//        video.addEventListener('play', function () {  
+//            drawVideoAtCanvas(video, context2);  
+//        }, false);  
+  
+        //拍照  
+        function getPhoto() {  
+            context1.drawImage(video, 0, 0,90,120); //将video对象内指定的区域捕捉绘制到画布上指定的区域，实现拍照。  
+        }  
+  
+        //视频  
+        function getVedio() {  
+            drawVideoAtCanvas(video, context2);  
+        }  
+  
+    </script>  
+</body>  
+</html>  
